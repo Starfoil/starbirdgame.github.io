@@ -31,7 +31,6 @@
 			$scope.backgroundPos1 -= 1;
 			$scope.backgroundPos2 -= 1;
 			$scope.gameDistance += 1;
-			console.log($(window).width());
 		}
 
 		$scope.createBox = function(sizeX, sizeY, offsetX, offsetY){
@@ -463,7 +462,6 @@
 		GC.updateMana();
 		GC.updateBackground();
 		GC.spawnMob();
-		GC.rejustScreen();
 		GC.$apply();
 	}
 
