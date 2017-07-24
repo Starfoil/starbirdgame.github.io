@@ -1,12 +1,21 @@
 <html lang="en" ng-app="APP">
 <head>
 	<title>Starbird Demo</title>
-	<link rel="icon" href="bluejay.ico">
+	<link rel="icon" href="img/bluejay.ico">
 	<meta charset="utf-8"> 
 	<link rel="stylesheet" href="css/bootstrap.min.css">
 	<script src="js/jquery.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<script src="js/angular.min.js"></script>
+	<script>
+		var APP = angular.module('APP', []);
+	</script>
+	<script src="controller/playerController.js"></script>
+	<script src="controller/mobController.js"></script>
+	<script src="controller/gameController.js"></script>
+	<script src="gamedata/mobData.js"></script>
+	<script src="gamedata/skinData.js"></script>
+	<script src="gamedata/levelData.js"></script>
 	<style>
 	.hitbox{
 		position: fixed;
@@ -15,397 +24,104 @@
 	img{
 		position: fixed;
 	}
+	h1{
+		font-family: Courier New;
+		font-size: 5vw;
+	}
+	h3{
+		font-family: Courier New;
+		font-size: 2.8vw;
+		text-align: center;
+	}
+	h5{
+		font-family: Courier New;
+		font-size: 1.5vw;
+		text-align: center;
+		margin: 2vw;
+	}
+	h6{
+		font-family: Courier New;
+		font-size: 1vw;
+		text-align: center;
+	}
+	.scoreLabel{
+		position: fixed;
+		font-family: Courier New;
+		font-size: 32px;
+		font-style: bold;
+		text-align: left;
+	}
+	img.nofix{
+		position: static;
+	}
+	.btn {
+	  background: #56ade8;
+	  background-image: -webkit-linear-gradient(top, #56ade8, #6e78e6);
+	  background-image: -moz-linear-gradient(top, #56ade8, #6e78e6);
+	  background-image: -ms-linear-gradient(top, #56ade8, #6e78e6);
+	  background-image: -o-linear-gradient(top, #56ade8, #6e78e6);
+	  background-image: linear-gradient(to bottom, #56ade8, #6e78e6);
+	  -webkit-border-radius: 25;
+	  -moz-border-radius: 25;
+	  border-radius: 25px;
+	  font-family: Courier New;
+	  color: #ffffff;
+	  font-size: 30px;
+	  padding: 25px 40px 25px 40px;
+	  border: solid #105e8f 2px;
+	  margin: 0px;
+	  text-decoration: none;
+	}
+	.btn:hover {
+	  background: #3cb0fd;
+	  background-image: -webkit-linear-gradient(top, #3cb0fd, #3997d1);
+	  background-image: -moz-linear-gradient(top, #3cb0fd, #3997d1);
+	  background-image: -ms-linear-gradient(top, #3cb0fd, #3997d1);
+	  background-image: -o-linear-gradient(top, #3cb0fd, #3997d1);
+	  background-image: linear-gradient(to bottom, #3cb0fd, #3997d1);
+	  text-decoration: none;
+	}
+	.fixed-vertical{
+		position: fixed;
+	    left: 50%;
+	    width: auto;
+	    -webkit-transform: translateX(-50%);
+	    -moz-transform: translateX(-50%);
+	    -ms-transform: translateX(-50%);
+	    -o-transform: translateX(-50%);
+	    transform: translateX(-50%);
+	}
+	.bars{
+		position: fixed;
+		height: 10px;
+		top: 20px;
+		border-radius: 10px;
+	}
 	</style>
 	<script>
-	var APP = angular.module('APP', []);
-
 	APP.controller("CTRL", function($scope){
-		$scope.screenWidth = $(window).width();
-		$scope.screenHeight = $(window).height();
-		$scope.backgroundPos1 = 0;
-		$scope.backgroundPos2 = $(window).width();
-		$scope.updateBackground = function(){
-			if($scope.backgroundPos2 <= 0){
-				$scope.backgroundPos1 = 0;
-				$scope.backgroundPos2 = $(window).width();
-			}
-			$scope.backgroundPos1 -= 1;
-			$scope.backgroundPos2 -= 1;
-			$scope.gameDistance += 1;
-		}
-
-		$scope.createBox = function(sizeX, sizeY, offsetX, offsetY){
-			var obj = {
-				x : sizeX,
-				y : sizeY,
-				ox : offsetX,
-				oy : offsetY,
-			}
-			return obj;
-		}
-		$scope.moveRight = function(){
-			if($scope.player.x < $(window).width() - $scope.player.box.x / 2){
-				$scope.player.x += $scope.player.skin.speed_x;
-			}
-		}
-		$scope.moveLeft = function(){
-			if($scope.player.x > -$scope.player.box.x / 2){
-				$scope.player.x -= $scope.player.skin.speed_x;
-			}	
-		}
-		$scope.moveUp = function(){
-			if($scope.player.y > -$scope.player.box.y / 2){
-				$scope.player.y -= $scope.player.skin.speed_y;
-			}
-		}
-		$scope.moveDown = function(){
-			if($scope.player.y < $(window).height() - $scope.player.box.y){
-				$scope.player.y += $scope.player.skin.speed_y;
-			}	
-		}
-		$scope.shoot = function(){
-			if($scope.player.fireCounter > $scope.player.skin.fireRate && $scope.player.currentMana - $scope.player.skin.manaCost >= 0){
-				var bullet = {
-					x: $scope.player.x + $scope.player.skin.ox,
-					y: $scope.player.y + $scope.player.skin.oy,
-					box: $scope.createBox(60, 40, 10, 10),
-					damage: $scope.player.skin.bulletDamage,
-				}
-				$scope.player.bullets.push(bullet);
-				$scope.player.currentMana -= $scope.player.skin.manaCost;
-				$scope.player.fireCounter = 0;
-			}
-		}
-		$scope.updateMana = function(){
-			$scope.player.fireCounter += 1;
-			if($scope.player.currentMana < $scope.player.maxMana){
-				$scope.player.currentMana += $scope.player.skin.manaRegen;
-			}
-		}
-		$scope.updateBullets = function(){
-			var b = $scope.player.bullets;
-			for (var i = 0; i < b.length; i++){
-				b[i].x += $scope.player.skin.bulletSpeed;
-				if (b[i].x > 1200){
-					b.splice(i, 1);
-				} 
-			}
-		}
-		$scope.updateHealth = function(obj, damageTaken){
-			if(obj.currentHealth - damageTaken > 0){
-				obj.currentHealth -= damageTaken;
-			}
-			else{
-				obj.currentHealth = 0;
-			}
-		}
-		$scope.spawnMob = function(){
-			var sl = $scope.mobs.notSpawned;
-			for (var i = 0; i < sl.length; i++){
-				if ($scope.gameDistance > sl[i].distance){
-					var newObject = jQuery.extend(true, {}, $scope.mobinfo[sl[i].eid - 1]);
-					newObject.y = Math.floor(Math.random() * ($(window).height() - ($(window).height() / 10)));
-					$scope.mobs.m1.push(newObject);
-					sl.splice(i, 1);
-				}
-			}
-		}
-		$scope.createSpawnList = function(){
-			var cl = $scope.currentLevel;
-			for (var i = 0; i < cl.level.length; i++){
-				var so = cl.level[i];
-				for(var j = 0; j < so.amount; j++){
-					var spawnDistance = Math.floor(Math.random() * (so.endDistance - so.startDistance)) + so.startDistance;
-					var obj = {
-						eid: so.eid,
-						distance: spawnDistance,
-					}
-					$scope.mobs.notSpawned.push(obj);
-				}
-			}
-		}
-		$scope.updateMobs = function(){
-			var b = $scope.mobs.m1;
-			var p = $scope.player;
-			$scope.targetPlayer();
-			for (var i = 0; i < b.length; i++){
-				var m = b[i];
-				if (m.x < - 3 * m.box.y){
-					b.splice(i, 1);
-				} 
-				m.x -= m.xspeed;
-				if (m.target == $scope.player){
-					if(m.y > p.y + 10)	m.y -= m.yspeed;
-					else if(m.y < p.y - 10)	m.y += m.yspeed;
-				}
-				if(m.zig != null){
-					if(!m.zig.zigDown && !m.zig.zigUp){
-						m.zig.zigDestY = m.y - Math.floor(Math.random() * m.zig.zigFactor) + m.zig.zigFactor / 4;
-						m.zig.zigDown = false;
-						m.zig.zigUp = true;
-					}
-					else if(m.zig.zigDown){
-						m.y += m.yspeed;
-						if(m.y > m.zig.zigDestY){
-							m.zig.zigDestY = m.y - Math.floor(Math.random() * m.zig.zigFactor) + m.zig.zigFactor / 4;
-							m.zig.zigDown = false;
-							m.zig.zigUp = true;
-						}
-					}
-					else if(m.zig.zigUp){
-						m.y -= m.yspeed;
-						if(m.y < m.zig.zigDestY){
-							m.zig.zigDestY = m.y + Math.floor(Math.random() * m.zig.zigFactor) + m.zig.zigFactor / 4;
-							m.zig.zigDown = true;
-							m.zig.zigUp = false;
-						}
-					}
-				}
-			}
-		}
-		$scope.updateCollision = function(){
-			// BULLET - MOB COLLISION
-			var p = $scope.player;
-			var b = $scope.player.bullets;
-			var m = $scope.mobs.m1;
-			for (var i = 0; i < b.length; i++){
-				for (var j = 0; j < m.length; j++){
-					if ($scope.collide(b[i], m[j])){
-						$scope.updateHealth(m[j], b[i].damage);
-						b.splice(i, 1);
-					}
-					if(m[j].currentHealth == 0){
-						m.splice(j, 1);
-					} 
-				}
-			}
-			// PLAYER - MOB COLLISION
-			for (var j = 0; j < m.length; j++){
-				if ($scope.collide(p, m[j])){
-					$scope.updateHealth($scope.player, m[j].damage);
-					m.splice(j, 1);
-				} 
-			}
-		}
-		$scope.collide = function(obj1, obj2){
-			if(obj1 != null && obj2 != null){
-				var obj1L = obj1.x + obj1.box.ox;
-				var obj1T = obj1.y + obj1.box.oy;
-				var obj1B = obj1.y + obj1.box.oy + obj1.box.y;
-				var obj1R = obj1.x + obj1.box.ox + obj1.box.x;
-				var obj2L = obj2.x + obj2.box.ox;
-				var obj2T = obj2.y + obj2.box.oy;
-				var obj2B = obj2.y + obj2.box.oy + obj2.box.y;
-				var obj2R = obj2.x + obj2.box.ox + obj2.box.x;
-				return !(obj2L > obj1R || 
-				         obj2R < obj1L || 
-				         obj2T > obj1B ||
-				         obj2B < obj1T);
-			}
-		}
-		$scope.targetPlayer = function(){
-			// BULLET - MOB COLLISION
-			var p = $scope.player;
-			var m = $scope.mobs.m1;
-			for (var i = 0; i < m.length; i++){
-				if(m[i].x > p.x && m[i].targetRange > 0 && (m[i].x - p.x < m[i].targetRange)){
-					m[i].target = $scope.player;
-				}
-			}
-		}
-
-		$scope.gameDistance = 0;
-		$scope.skininfo = [
-		{
-			id: 1,
-			name: "Trashy",
-			imgsrc: "img/player1.png",
-			speed_x: 4,
-			speed_y: 4,
-			ox: 70,
-			oy: 20,
-			manaCost: 40,
-			manaRegen: 1,
-			defense: 0,
-			fireRate: 25,
-			boxX: 115,
-			boxY: 90,
-			boxOffsetX: 0,
-			boxOffsetY: 0,
-			bulletDamage: 10,
-			bulletSpeed: 6,
-		},
-		{
-			id: 2,
-			name: "Puffer",
-			imgsrc: "img/player2.png",
-			speed_x: 2,
-			speed_y: 3,
-			ox: 105,
-			oy: 40,
-			manaCost: 80,
-			manaRegen: 1.5,
-			defense: 0,
-			fireRate: 40,
-			boxX: 135,
-			boxY: 100,
-			boxOffsetX: 0,
-			boxOffsetY: 0,
-			bulletDamage: 25,
-			bulletSpeed: 5,
-		},
-		{
-			id: 3,
-			name: "Flammy",
-			imgsrc: "img/player3.png",
-			speed_x: 5,
-			speed_y: 4,
-			ox: 105,
-			oy: 40,
-			manaCost: 50,
-			manaRegen: 1.25,
-			defense: 0,
-			fireRate: 20,
-			boxX: 135,
-			boxY: 100,
-			boxOffsetX: 0,
-			boxOffsetY: 0,
-			bulletDamage: 15,
-			bulletSpeed: 8,
-		},
-		]
-		$scope.mobinfo = [
-		{
-			id: 1,
-			imgsrc: "img/mob1.png",
-			x: $(window).width(),
-			y: 0,
-			xspeed: 2,
-			yspeed: 0,
-			damage: 20,
-			maxHealth: 15,
-			currentHealth: 15,
-			defense: 0,
-			targetRange: 0,
-			target: null,
-			box: $scope.createBox(40, 40, 40, 10),	
-			zig: null,
-		},
-		{
-			id: 2,
-			imgsrc: "img/mob2.png",
-			x: $(window).width(),
-			y: 0,
-			xspeed: 4,
-			yspeed: 2,
-			damage: 40,
-			maxHealth: 20,
-			currentHealth: 20,
-			defense: 0,
-			targetRange: 800,
-			target: null,
-			box: $scope.createBox(80, 50, 30, 10),	
-			zig: null,
-		},
-		{
-			id: 3,
-			imgsrc: "img/mob3.png",
-			x: $(window).width(),
-			y: 0,
-			xspeed: 5,
-			yspeed: 2,
-			damage: 60,
-			maxHealth: 10,
-			currentHealth: 10,
-			defense: 0,
-			targetRange: 0,
-			target: null,
-			box: $scope.createBox(70, 50, 10, 10),
-			zig: {
-				zigUp: false,
-				zigDown: false,
-				zigDestY: 0,
-				zigFactor: 250,
-			},	
-		},
-		{
-			id: 4,
-			imgsrc: "img/mob4.png",
-			x: $(window).width(),
-			y: 0,
-			xspeed: 7,
-			yspeed: 0,
-			damage: 75,
-			maxHealth: 10,
-			currentHealth: 10,
-			defense: 0,
-			targetRange: 0,
-			target: null,
-			box: $scope.createBox(100, 70, 10, 20),	
-			zig: null,
-		},
-		{
-			id: 5,
-			imgsrc: "img/mob5.png",
-			x: $(window).width(),
-			y: 0,
-			xspeed: 2,
-			yspeed: 1,
-			damage: 200,
-			maxHealth: 100,
-			currentHealth: 100,
-			defense: 0,
-			targetRange: 0,
-			target: null,
-			box: $scope.createBox(120, 100, 20, 20),	
-			zig: null,
-		},
-		{
-			id: 6,
-			imgsrc: "img/mob6.png",
-			x: $(window).width(),
-			y: 0,
-			xspeed: 3,
-			yspeed: 0,
-			damage: 50,
-			maxHealth: 30,
-			currentHealth: 30,
-			defense: 0,
-			targetRange: 0,
-			target: null,
-			box: $scope.createBox(80, 70, 20, 10),	
-			zig: null,
-		},
-		];
-		$scope.currentSkin = $scope.skininfo[0];
+		APP.playerController($scope);
+		APP.mobController($scope);
+		APP.gameController($scope);
+		APP.mobData($scope);
+		APP.skinData($scope);
+		APP.levelData($scope);
+		$scope.currentSkinId = 2;
+		
+		$scope.currentLevel = $scope.levelData[0];
 		$scope.player = {
-			x: 500,
-			y: 50,
+			x: 50,
+			y: 450,
 			bullets: [],
 			maxHealth: 400,
 			maxMana: 400,
 			currentHealth: 400,
 			currentMana: 400,
-			skin: $scope.currentSkin,
-			box : $scope.createBox($scope.currentSkin.boxX, $scope.currentSkin.boxY, 
-				$scope.currentSkin.boxOffsetX, $scope.currentSkin.boxOffsetY),
+			skin: $scope.skinData[$scope.currentSkinId],
+			box : $scope.createBox($scope.skinData[$scope.currentSkinId].boxX, $scope.skinData[$scope.currentSkinId].boxY, 
+				$scope.skinData[$scope.currentSkinId].boxOffsetX, $scope.skinData[$scope.currentSkinId].boxOffsetY),
 			fireCounter: 0,
 		}
-		$scope.mobs = {
-			m1: [],
-			notSpawned: [],
-		}
-		$scope.levelData = [
-		{
-			id: 1,
-			name: "test",
-			level:[
-				{eid: 1, amount: 5, startDistance: 100, endDistance: 500},
-				{eid: 2, amount: 2, startDistance: 400, endDistance: 800},
-			],
-		},	
-		]
-		$scope.currentLevel = $scope.levelData[0];
 	});
 
 	</script>
@@ -414,84 +130,211 @@
 <div id="GAME" style="position: relative; height: 100%;" ng-controller="CTRL">
 	<img src="img/bg1.jpg" alt="background_image" style="width: {{screenWidth}}; height: {{screenHeight}}; top: 0%; left: {{backgroundPos1}}">
 	<img src="img/bg1.jpg" alt="background_image" style="width: {{screenWidth}}; height: {{screenHeight}}; top: 0%; left: {{backgroundPos2}}">
-	<div style="position: fixed; background-color: red; 		height: 10px; width: {{player.maxHealth}};		top: 20px; left: 20px;"></div>
-	<div style="position: fixed; background-color: green; 		height: 10px; width: {{player.currentHealth}};	top: 20px; left: 20px;"></div>
-	<div style="position: fixed; background-color: red; 		height: 10px; width: {{player.maxMana}};		top: 20px; right: 20px;"></div>
-	<div style="position: fixed; background-color: blue; 		height: 10px; width: {{player.currentMana}};	top: 20px; right: 20px;"></div>
-	<img src={{player.skin.imgsrc}} alt="player" style="top: {{player.y}}; left: {{player.x}};"></img> 
-	<div class="hitbox" style="top:{{player.y + player.box.oy}}; left:{{player.x + player.box.ox}}; width: {{player.box.x}}; height: {{player.box.y}}"></div>
-	<h6 style="position: fixed; top: 50px; left: 50px;">{{gameDistance}}</h6>
+	
+	<div id="playerImage">
+		<img src={{player.skin.imgsrc}} alt="player" style="top: {{player.y}}; left: {{player.x}};"></img> 
+		<h6 style="position: fixed;	top:{{player.y + player.box.y - (player.box.y / 10)}}; 
+				left:{{player.x + (player.box.x / 3)}};">{{player.skin.name}}</h6>
+	</div>
+		
 	<ul ng-repeat="b in player.bullets">
 		<img src="img/bullet.png" alt="bullet" style="top: {{b.y}}; left: {{b.x}};"></img>
-		<div class="hitbox" style="top:{{b.y + b.box.oy}}; left:{{b.x + b.box.ox}}; width: {{b.box.x}}; height: {{b.box.y}}"></div>
 	</ul>
-	<ul ng-repeat="e in mobs.m1">
+	<ul ng-repeat="e in mobs.spawned">
 		<img src={{e.imgsrc}} alt="mobbird1" style="top: {{e.y}}; left: {{e.x}};"></img>
-		<div class="hitbox" style="top:{{e.y + e.box.oy}}; left:{{e.x + e.box.ox}}; width: {{e.box.x}}; height: {{e.box.y}}"></div>
-		<div style="position: absolute; background-color: red; height: 4px; width: {{e.maxHealth}}; 
+		<div style="position: fixed; background-color: red; height: 4px; width: {{e.maxHealth}}; 
 			top:{{e.y + e.box.oy + e.box.y + 5}}; 
 			left:{{e.x + e.box.ox + (e.box.x / 2 - e.maxHealth / 2)}};">
 		</div>
-		<div style="position: absolute; background-color: green; height: 4px; width: {{e.currentHealth}}; 
+		<div style="position: fixed; background-color: green; height: 4px; width: {{e.currentHealth}}; 
 			top:{{e.y + e.box.oy + e.box.y + 5}}; 
 			left:{{e.x + e.box.ox + (e.box.x / 2 - e.maxHealth / 2)}};">
 		</div>
-		
 	</ul>
+	<ul ng-repeat="e in mobs.dead">
+		<img src={{e.imgsrc}} alt="mobbird1" style="top: {{e.y}}; left: {{e.x}};"></img>
+	</ul>
+	
+	<div id="hitboxDiv">
+		<div class="hitbox" style="top:{{player.y + player.box.oy}}; left:{{player.x + player.box.ox}}; width: {{player.box.x}}; height: {{player.box.y}}"></div>
+		<ul ng-repeat="b in player.bullets">
+			<div class="hitbox" style="top:{{b.y + b.box.oy}}; left:{{b.x + b.box.ox}}; width: {{b.box.x}}; height: {{b.box.y}}"></div>
+		</ul>
+		<ul ng-repeat="e in mobs.spawned">
+			<div class="hitbox" style="top:{{e.y + e.box.oy}}; left:{{e.x + e.box.ox}}; width: {{e.box.x}}; height: {{e.box.y}}"></div>
+		</ul>
+	</div>
+
+	<!-- <img src="img/ea.gif" style="top: {{player.y}}; left: {{player.x}}; width: 150px; height: 100px;" /> -->
+	<img src="img/score.png" alt="score" style="top: 8%; left: 1.5%;" />
+	<span class="scoreLabel" style="top: 9%; left: 6%;">{{score}}</span>
+<!-- 	<img src="img/coin.png" alt="coin" style="top: 18%; left: 1.5%;" />
+	<span class="scoreLabel" style="top: 19%; left: 6%;">{{coins}}</span> -->
+	<img src="img/distance.png" alt="distance" style="bottom: 1%; left: 1%; width: 20px; height: 34px;" />
+	<span class="scoreLabel" style="color: white; bottom: 0; left: 3%;">{{gameDistance | number:0}}m</span>
+	<div class="bars" style="background-color: #ed1717; 	width: {{player.maxHealth}};		left: 20px;"></div>
+	<div class="bars" style="background-color: #06e04f;		width: {{player.currentHealth}};	left: 20px;"></div>
+	<h6 style="position: fixed; left: 2%; top: -1%;">Health</h6>
+	<div class="bars" style="background-color: #ffffff; 	width: {{player.maxMana}};		right: 20px;"></div>
+	<div class="bars" style="background-color: #d8d10e; 	width: {{player.currentMana}};	right: 20px;"></div>
+	<h6 style="position: fixed; right: 2%; top: -1%;">Energy</h6>
+
+	<div id="prescreen" class="fixed-vertical" style="top: 10%; text-align: center;">
+		<h1 style="padding: 0px; margin: 0px;">Starbird Demo</h1>
+		<h6 style="float: right; padding: 0px; margin: 0px;">By Jason Dam</h6>
+		<h5>
+			<b>Arrow keys</b> to move 		</br></br>
+			<b>Spacebar</b> to shoot 		</br></br>
+			<b>H</b> to show hitboxes		</br></br>
+			<b>C</b> to change characters	</br></br>
+			<b>P</b> to pause game 		
+		</h5>
+		<button class="btn" onclick="startGame();">Play</button>
+		<h5><b>Survive for as long as you can!</b></h5>
+	</div>
+	<h3 id="pauseText" class="fixed-vertical">Game Paused</h3>
+	<div id="loseScreen" class="fixed-vertical" style="top: 15%; text-align: center;">
+		<h1>Defeat</h1>
+		<img class="nofix" src="img/defeat.png"></img>
+		<h5>Check out the <a style="color: black" href="https://github.com/Starfoil/starbird"><b>full game</b></a> on github</h5>
+	</div>
+	<div id="winScreen" class="fixed-vertical" style="top: 15%; text-align: center;">
+		<h1>Victory</h1>
+		<img class="nofix" src="img/victory.png"></img>
+		<h5>Check out the <a style="color: black" href="https://github.com/Starfoil/starbird"><b>full game</b></a> on github</h5>
+	</div>
+
+	
 </div>
 <script>
-	
+
+
+
 	var LEFT = false; 
 	var RIGHT = false;
 	var UP = false;
 	var DOWN = false;
 	var SHOOT = false;
 	var SPAWN_CREATED = false;
+	var GAME_STARTED = false;
+	var PAUSE = false;
+	var GAMEOVER = false;
+	$("#pauseText").hide();
+	$("#hitboxDiv").hide();
+
+	$("#loseScreen").hide();
+	$("#winScreen").hide();
 
 	setInterval(update, 15);
+	myAudio = new Audio("sound/bgm.wav"); 
+	myAudio.addEventListener("ended", function() {
+	    this.currentTime = 0;
+	    this.play();
+	}, false);
+	myAudio.play();
+
+	function startGame(){
+		var GC = angular.element(document.getElementById("GAME")).scope(); 
+		GC.createSpawnList();
+		GC.$apply();
+		GAME_STARTED = true;
+		$("#prescreen").hide();
+	}
+	
 	
 	function update(){
-		move();
+		if(GAMEOVER) $("#playerImage").hide();
 		var GC = angular.element(document.getElementById("GAME")).scope(); 
-		if(!SPAWN_CREATED){
-			GC.createSpawnList();
-			SPAWN_CREATED = true;
+		if(!PAUSE){
+			if(!GAMEOVER){
+				checkGame();
+				move();
+			}
+			GC.updateBackground();
+			GC.updateBullets(GC.player);
+			GC.updateMana(GC.player);
+			if(GAME_STARTED){
+				GC.updateMobs();
+				if(!GAMEOVER){
+					GC.updateCollision();
+					GC.spawnMob();
+					GC.checkStatus();
+				}
+			}
 		}
-		GC.updateMobs();
-		GC.updateCollision();
-		GC.updateBullets();
-		GC.updateMana();
-		GC.updateBackground();
-		GC.spawnMob();
 		GC.$apply();
 	}
 
+	function checkGame(){
+		var GC = angular.element(document.getElementById("GAME")).scope(); 
+		if(GC.gameStatus == -1){
+			$("#loseScreen").show();
+			GAMEOVER = true;
+		}
+		else if(GC.gameStatus == 1){
+			$("#winScreen").show();
+		}
+	}
+	
 	function move() {
 		var GC = angular.element(document.getElementById("GAME")).scope(); 
 		if(LEFT) { 
-			GC.moveLeft();
+			GC.moveLeft(GC.player);
 		}
 		if(RIGHT) {
-			GC.moveRight();
+			GC.moveRight(GC.player);
 		}
 		if(UP) {
-			GC.moveUp();
+			GC.moveUp(GC.player);
 		}
 		if(DOWN){
-			GC.moveDown();
+			GC.moveDown(GC.player);
 		}
 		if(SHOOT){
-			GC.shoot();
+			GC.shoot(GC.player);
 		}
 		GC.$apply();	
 	}
 
+	function changeCharacters(){
+		var GC = angular.element(document.getElementById("GAME")).scope(); 
+		if(GC.currentSkinId + 1 == GC.skinData.length){
+			GC.currentSkinId = 0;
+		}else{
+			GC.currentSkinId += 1;
+		}
+		GC.updateSkin();
+		GC.$apply();
+	}
+
+	var SHOW_HITBOX = false;
 	document.onkeydown = function(e) {
 		if(e.keyCode == 37) LEFT = true;
 		if(e.keyCode == 39) RIGHT = true;
 		if(e.keyCode == 38) UP = true;
 		if(e.keyCode == 40) DOWN = true;
 		if(e.keyCode == 32) SHOOT = true;
+		if(e.keyCode == 72){
+			if(!SHOW_HITBOX){
+				SHOW_HITBOX = true;
+				$("#hitboxDiv").show();
+			}
+			else{
+				SHOW_HITBOX = false;
+				$("#hitboxDiv").hide();
+			}
+		}
+		if(e.keyCode == 80){
+			if (!PAUSE){
+				PAUSE = true;
+				$("#pauseText").show();
+			}	
+			else{
+				PAUSE = false;
+				$("#pauseText").hide();
+			}		
+		}
+		if(e.keyCode == 67 && !GAME_STARTED) changeCharacters();
 	}
 
 	document.onkeyup = function(e) {
