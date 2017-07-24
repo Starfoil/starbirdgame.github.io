@@ -106,7 +106,7 @@
 		APP.mobData($scope);
 		APP.skinData($scope);
 		APP.levelData($scope);
-		$scope.currentSkinId = 2;
+		$scope.currentSkinId = 0;
 		
 		$scope.currentLevel = $scope.levelData[0];
 		$scope.player = {
@@ -133,8 +133,8 @@
 	
 	<div id="playerImage">
 		<img src={{player.skin.imgsrc}} alt="player" style="top: {{player.y}}; left: {{player.x}};"></img> 
-		<h6 style="position: fixed;	top:{{player.y + player.box.y - (player.box.y / 10)}}; 
-				left:{{player.x + (player.box.x / 3)}};">{{player.skin.name}}</h6>
+		<h6 style="position: fixed;	top:{{player.y + player.box.oy + player.box.y - (player.box.y / 10)}}; 
+				left:{{player.x + player.box.ox + (player.box.x / 4)}};">{{player.skin.name}}</h6>
 	</div>
 		
 	<ul ng-repeat="b in player.bullets">

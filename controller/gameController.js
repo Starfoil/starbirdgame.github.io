@@ -12,6 +12,8 @@ APP.gameController = function($scope){
 	//0 = GAME
 	//1 = WIN
 	//2 = LOSE
+	$scope.fireballSound = new Audio("sound/fb.wav");
+	$scope.deathSound = new Audio("sound/bdie.wav");
 
 	$scope.updateBackground = function(){
 		if($scope.backgroundPos2 <= 0){
@@ -38,7 +40,8 @@ APP.gameController = function($scope){
 					$scope.score += m[j].score;
 					m[j].imgsrc = "img/ea.gif?" + Math.floor(Math.random() * 999999);
 					$scope.mobs.dead.push(m[j]);
-					new Audio("sound/bdie.wav").play();
+					var sound = $scope.deathSound.cloneNode();
+					sound.play();
 					m.splice(j, 1);
 				} 
 			}

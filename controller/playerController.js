@@ -40,7 +40,8 @@ APP.playerController = function($scope){
 			playerObj.bullets.push(bullet);
 			playerObj.currentMana -= playerObj.skin.manaCost;
 			playerObj.fireCounter = 0;
-			new Audio("sound/fb.wav").play();
+			var sound = $scope.fireballSound.cloneNode();
+			sound.play();
 		}
 	}
 
